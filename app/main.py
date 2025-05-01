@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware # Import CORSMiddleware
 from pydantic import BaseModel
 from pymongo import MongoClient
 from typing import List, Dict
+from langchain import PromptTemplate
 from langchain_core.documents import Document # Keep Document as it's used in the query function signature if needed later
 from app.chroma_client import chroma_client
 from langchain_ollama import ChatOllama
@@ -42,6 +43,22 @@ User Question: {query}
 Answer:
 """
 
+generate_prompt_template = PromptTemplate(
+    input_variables=["query", "context_comments"],
+    template="""
+    You are an AI assistant analyzing Fisheye/Stash code review comments.
+    Based solely on the following comments provided as context, please answer the user's question.
+    If the comments don't provide enough information, state that.
+
+    Context Comments:
+    {context_comments}
+
+    User Question: {query}
+
+    Answer:
+    """,
+)
+
 EXPANTION_PROMPT_TEMPLATE = """You are an AI language model assistant.
 Your task is to generate {expand_to_n}
 different versions of the given user question to retrieve relevant documents from a vector
@@ -49,6 +66,23 @@ database. By generating multiple perspectives on the user question, your goal is
 the user overcome some of the limitations of the distance-based similarity search.
 Provide these alternative questions seperated by '{separator}'.
 Original question: {question}"""
+
+
+hyde_prompt = PromptTemplate(
+    input_variables=["query", "context_comments"],
+    template="""
+    You are an AI assistant analyzing Fisheye/Stash code review comments.
+    Based solely on the following comments provided as context, please answer the user's question.
+    If the comments don't provide enough information, state that.
+
+    Context Comments:
+    {context_comments}
+
+    User Question: {query}
+
+    Answer:
+    """,
+)
 
 
 class RequestQuery(BaseModel):
@@ -66,9 +100,13 @@ async def read_items():
 
 @app.post("/query")
 async def query_data(request: RequestQuery):
-    augment_prompt = AUGMENT_PROMPT_TEMPLATE.format(
-        query=request.query
+    augment_prompt = EXPANTION_PROMPT_TEMPLATE.format(
+        question=request.query,
+        expand_to_n=5,
+        separator="<next_question>"
     )
+    
+
     additional_questions = llm_model.invoke(generate_prompt)
     print("New questions:", additional_questions)
 
