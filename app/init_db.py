@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from langchain_core.documents import Document
-from chroma_client import chroma_client, embeddings
+from chroma_client import chroma_client
 from comments import comments # Import comments
 from instagram_comments import instagram_comments # Import comments
 

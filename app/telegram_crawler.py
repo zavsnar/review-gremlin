@@ -96,17 +96,29 @@ async def get_channel_messages(channel_username, limit=100):
 
 
         # Fetch messages
-        async for message in client.iter_messages(channel, limit=limit):
-            # Process message object as needed
-            # print(f"Message ID: {message.id}, Date: {message.date}, Text: {message.text[:50]}...")
-            messages_data.append({
-                'id': message.id,
-                'date': message.date.isoformat(),
-                'text': message.text,
-                'sender_id': message.sender_id,
-                # Add more fields as needed
-            })
-        print(f"Fetched {len(messages_data)} messages.")
+        from tqdm.asyncio import tqdm
+        from tqdm import tqdm
+        for i in tqdm(range(10), desc="Fetching messages"):
+            async for message in client.iter_messages(channel, limit=limit):
+                # Process message object as needed
+                # print(f"Message ID: {message.id}, Date: {message.date}, Text: {message.text[:50]}...")
+                messages_data.append({
+                    'id': message.id,
+                    'date': message.date.isoformat(),
+                    'text': message.text,
+                    'reply_to_message_id': message.reply_to_msg_id,
+                    'reply_to_message_text': None,
+                    'sender_id': message.sender_id,
+                    # Add more fields as needed
+                })
+
+                if message.reply_to_msg_id:
+                    try:
+                        reply_message = await client.get_messages(channel, ids=message.reply_to_msg_id)
+                        messages_data[-1]['reply_to_message_text'] = reply_message.text
+                    except Exception as e:
+                        print(f"Error fetching reply message: {e}")
+            print(f"Fetched {len(messages_data)} messages.")
 
     except Exception as e:
         print(f"An error occurred: {e}")
