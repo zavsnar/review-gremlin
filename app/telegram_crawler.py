@@ -98,7 +98,7 @@ async def get_channel_messages(channel_username, limit=100):
         # Fetch messages
         from tqdm.asyncio import tqdm
         from tqdm import tqdm
-        for i in tqdm(range(10), desc="Fetching messages"):
+        for i in tqdm(range(10), desc="Fetching messages", ncols=80):
             async for message in client.iter_messages(channel, limit=limit):
                 # Process message object as needed
                 # print(f"Message ID: {message.id}, Date: {message.date}, Text: {message.text[:50]}...")
