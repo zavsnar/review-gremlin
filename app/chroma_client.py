@@ -48,7 +48,7 @@ def get_client(collection_name, embeddings):
 # chroma_client = get_client('comments', default_embeddings)
 
 
-def load_data_to_chroma(chroma_client, items: list[dict], reset=True):
+def load_data_to_chroma(chroma_client: Chroma, items: list[dict], reset=True):
     documents = [
         Document(page_content=item["text"], metadata=item['metadata']) for item in items if item['text']
     ]
